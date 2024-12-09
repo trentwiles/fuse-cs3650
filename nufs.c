@@ -138,7 +138,7 @@ int nufs_rmdir(const char *path) {
     }
 
     // remove via storage layer if needed
-    rv = storage_rmdir(path);
+    //rv = storage_rmdir(path);
     slist_free(contents);
 
     if (rv == -1) {
