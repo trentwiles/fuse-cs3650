@@ -1,8 +1,6 @@
-// inode implementation
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 #include "inode.h"
 #include "blocks.h"

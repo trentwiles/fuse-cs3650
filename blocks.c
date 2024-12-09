@@ -2,14 +2,15 @@
 
 #include <sys/mman.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <stdio.h>
-#include <stdint.h>
 
+// our c header files
 #include "blocks.h"
 #include "util.h"
 #include "bitmap.h"

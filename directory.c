@@ -1,5 +1,3 @@
-// Implementation of directory.h
-
 #include "slist.h"
 #include "blocks.h"
 #include "inode.h"
@@ -8,15 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-
-/*
-typedef struct dirent {
-    char name[DIR_NAME]; // The name of the directory
-    int  inum; // the number of the inode in the inode table?
-    char used; // is this used?
-    char _reserved[11]; // rounding things out
-} dirent; */
-
 
 void directory_init() {
     // we already have our page for the inodes allocated
