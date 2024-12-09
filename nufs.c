@@ -37,22 +37,23 @@ nufs_getattr(const char *path, struct stat *st)
         st->st_mode = 040755; // directory
         st->st_size = 0;
         st->st_uid = getuid();
-        //st->st_nlink = 1;
     }
     else {
         rv = storage_stat(path, st);
         st->st_uid = getuid();
     }
+
     printf("getattr(%s) -> (%d) {mode: %04o, size: %ld}\n", path, rv, st->st_mode, st->st_size);
-    if (rv == -1)
+
+    if (rv == -1) {
         return -ENOENT;
+    }
     return 0;
 }
 
 // implementation for: man 2 readdir
 // lists the contents of a directory
-int
-nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+int nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
              off_t offset, struct fuse_file_info *fi)
 {
     struct stat st;
@@ -64,7 +65,6 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     slist_t* dirnames = storage_list(path);
     filler(buf, ".", &st, 0);
     if (dirnames == NULL) {
-        printf("readdir(%s) -> %d\n", path, rv);
         return 0;
     }
 
@@ -91,10 +91,12 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 // mknod makes a filesystem object like a file or directory
 // called for: man 2 open, man 2 link
-int
-nufs_mknod(const char *path, mode_t mode, dev_t rdev)
+// Note, for this assignment, you can alternatively implement the create
+// function.
+int nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
     int rv = -1;
+    // simply makes a call to our other method
     rv = storage_mknod(path, mode);
     printf("mknod(%s, %04o) -> %d\n", path, mode, rv);
     return rv;
@@ -102,16 +104,14 @@ nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 
 // most of the following callbacks implement
 // another system call; see section 2 of the manual
-int
-nufs_mkdir(const char *path, mode_t mode)
+int nufs_mkdir(const char *path, mode_t mode)
 {
     int rv = nufs_mknod(path, mode | 040000, 0);
     printf("mkdir(%s) -> %d\n", path, rv);
     return rv;
 }
 
-int
-nufs_unlink(const char *path)
+int nufs_unlink(const char *path)
 {
     int rv = -1;
     rv = storage_unlink(path);
@@ -119,8 +119,7 @@ nufs_unlink(const char *path)
     return rv;
 }
 
-int
-nufs_link(const char *from, const char *to)
+int nufs_link(const char *from, const char *to)
 {
     int rv = -1;
     printf("link(%s => %s) -> %d\n", from, to, rv);
@@ -128,8 +127,7 @@ nufs_link(const char *from, const char *to)
     return rv;
 }
 
-int
-nufs_rmdir(const char *path)
+int nufs_rmdir(const char *path)
 {
     int rv = -1;
     printf("rmdir(%s) -> %d\n", path, rv);
@@ -138,8 +136,7 @@ nufs_rmdir(const char *path)
 
 // implements: man 2 rename
 // called to move a file within the same filesystem
-int
-nufs_rename(const char *from, const char *to)
+int nufs_rename(const char *from, const char *to)
 {
     int rv = -1;
     rv = storage_rename(from, to);
@@ -147,16 +144,14 @@ nufs_rename(const char *from, const char *to)
     return rv;
 }
 
-int
-nufs_chmod(const char *path, mode_t mode)
+int nufs_chmod(const char *path, mode_t mode)
 {
     int rv = -1;
     printf("chmod(%s, %04o) -> %d\n", path, mode, rv);
     return rv;
 }
 
-int
-nufs_truncate(const char *path, off_t size)
+int nufs_truncate(const char *path, off_t size)
 {
     int rv = -1;
     rv = storage_truncate(path, size);
@@ -164,11 +159,11 @@ nufs_truncate(const char *path, off_t size)
     return rv;
 }
 
-// this is called on open, but doesn't need to do much
+// This is called on open, but doesn't need to do much
 // since FUSE doesn't assume you maintain state for
 // open files.
-int
-nufs_open(const char *path, struct fuse_file_info *fi)
+// You can just check whether the file is accessible.
+int nufs_open(const char *path, struct fuse_file_info *fi)
 {
     int rv = 0;
     printf("open(%s) -> %d\n", path, rv);
@@ -176,8 +171,7 @@ nufs_open(const char *path, struct fuse_file_info *fi)
 }
 
 // Actually read data
-int
-nufs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
+int nufs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
     int rv = -1;
     rv = storage_read(path, buf, size, offset);
@@ -186,8 +180,7 @@ nufs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_fi
 }
 
 // Actually write data
-int
-nufs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
+int nufs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
     int rv = -1;
     rv = storage_write(path, buf, size, offset);
@@ -196,8 +189,7 @@ nufs_write(const char *path, const char *buf, size_t size, off_t offset, struct 
 }
 
 // Update the timestamps on a file or directory.
-int
-nufs_utimens(const char* path, const struct timespec ts[2])
+int nufs_utimens(const char* path, const struct timespec ts[2])
 {
     int rv = -1;
     rv = storage_set_time(path, ts);
@@ -207,8 +199,7 @@ nufs_utimens(const char* path, const struct timespec ts[2])
 }
 
 // Extended operations
-int
-nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
+int nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
            unsigned int flags, void* data)
 {
     int rv = 0;
@@ -216,8 +207,7 @@ nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
     return rv;
 }
 
-void
-nufs_init_ops(struct fuse_operations* ops)
+void nufs_init_ops(struct fuse_operations* ops)
 {
     memset(ops, 0, sizeof(struct fuse_operations));
     ops->access   = nufs_access;
@@ -235,14 +225,16 @@ nufs_init_ops(struct fuse_operations* ops)
     ops->open	  = nufs_open;
     ops->read     = nufs_read;
     ops->write    = nufs_write;
+    ops->utimens = nufs_utimens;
+    ops->ioctl = nufs_ioctl;
 };
 
 struct fuse_operations nufs_ops;
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     assert(argc > 2 && argc < 6);
+    // printf("TODO: mount %s as data file\n", argv[--argc]);
     storage_init(argv[--argc]);
     nufs_init_ops(&nufs_ops);
     return fuse_main(argc, argv, &nufs_ops, NULL);
