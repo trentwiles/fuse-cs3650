@@ -11,6 +11,7 @@
 #include "inode.h"
 #include "slist.h"
 
+// macro to get the minimum of two values because we're lazy
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 // helpers
