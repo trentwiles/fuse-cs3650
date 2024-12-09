@@ -233,8 +233,6 @@ nufs_init_ops(struct fuse_operations* ops)
     ops->open	  = nufs_open;
     ops->read     = nufs_read;
     ops->write    = nufs_write;
-    ops->readlink = nufs_readlink;
-    ops->symlink  = nufs_symlink;
 };
 
 struct fuse_operations nufs_ops;
