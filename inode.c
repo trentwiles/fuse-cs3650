@@ -54,17 +54,16 @@ int alloc_inode() {
 // employs our helper methods, shrink_inode and bitmap_put
 // shrink inode is defined below
 void free_inode(int inum) {
-    // Retrieve the inode and inode bitmap
+    // grab the inode
     inode* node = get_inode(inum);
     void* bitmap = get_inode_bitmap();
 
-    // Release all resources held by the inode
-    shrink_inode(node, 0); // Shrinks and releases inode data
+    // process of freeing inode resources (shrink + free)
+    shrink_inode(node, 0);
     if (node->ptrs[0] != 0) {
-        free_page(node->ptrs[0]); // Free the first data block
+        free_page(node->ptrs[0]);
     }
 
-    // Mark the inode as free in the bitmap
     bitmap_put(bitmap, inum, 0);
 }
 
