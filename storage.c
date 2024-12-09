@@ -228,3 +228,45 @@ static void get_parent_child(const char* path, char* parent, char* child) {
     child[strlen(fdir->data)] = 0;
     slist_free(flist);
 }
+
+// Removes a directory at the given path.
+int storage_rmdir(const char *path) {
+    // Locate the inode for the directory
+    int dir_inum = tree_lookup(path);
+    if (dir_inum < 0) {
+        return -ENOENT; // Directory does not exist
+    }
+
+    inode_t *dir_inode = get_inode(dir_inum);
+    if (!dir_inode) {
+        return -ENOENT; // Inode not found
+    }
+
+    // Check if the inode is a directory
+    if (!S_ISDIR(dir_inode->mode)) {
+        return -ENOTDIR; // Not a directory
+    }
+
+    // Check if the directory is empty
+    if (dir_inode->size > 0) {
+        return -ENOTEMPTY; // Directory not empty
+    }
+
+    // Mark the inode as free
+    free_inode(dir_inum);
+
+    // Update the parent directory to remove the directory entry
+    char parent_path[256];
+    char name[256];
+    split_path(path, parent_path, name); // Helper function to split path
+    int parent_inum = tree_lookup(parent_path);
+
+    if (parent_inum >= 0) {
+        inode_t *parent_inode = get_inode(parent_inum);
+        if (parent_inode) {
+            remove_dir_entry(parent_inode, name); // Helper to remove the entry
+        }
+    }
+
+    return 0;
+}
