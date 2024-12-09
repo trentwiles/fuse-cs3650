@@ -23,6 +23,9 @@ void directory_init();
 int directory_lookup(inode *di, const char *name);
 // useful function for discovering a path's location
 int tree_lookup(const char* path);
+
+// we also changed inode_t to inode to fit our implementation
+// yet another design choice
 int directory_put(inode *di, const char *name, int inum);
 int directory_delete(inode *di, const char *name);
 slist_t *directory_list(const char *path);

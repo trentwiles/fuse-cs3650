@@ -5,7 +5,6 @@
 
 // including blocks.h isn't technically needed, but we can remove later
 #include "blocks.h"
-#include <time.h>
 
 #define nptrs 2
 
