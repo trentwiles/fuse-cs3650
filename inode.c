@@ -6,15 +6,21 @@
 #include "blocks.h"
 #include "bitmap.h"
 
-// debugging function to print off the entire 
+// print off some metadata about the inode 
 void print_inode(inode_t* node) {
-    printf("==== INODE DEBUGGING ====");
-    printf("inode located at %p:\n", node);
-    printf("Node Type & Permission: %d\n", node->mode);
-    printf("Reference count: %d\n", node->refs);
-    printf("Node size (B): %d\n", node->size);
-    printf("Node indirect pointer count: %d\n", node->iptr);
-    printf("Node direct pointer count: %d, %d\n", node->ptrs[0], node->ptrs[1]);
+    if (node == NULL) {
+        printf("==== INODE DEBUGGING ====\n");
+        printf("Null inode pointer provided.\n");
+        return;
+    }
+
+    printf("==== INODE DEBUGGING ====\n");
+    printf("Inode pointer: %p\n", (void*)node);
+    printf("Type & Permissions: %d\n", node->mode);
+    printf("Reference Count: %d\n", node->refs);
+    printf("Size (bytes): %d\n", node->size);
+    printf("Indirect Pointer Count: %d\n", node->iptr);
+    printf("Direct Pointers: %d, %d\n", node->ptrs[0], node->ptrs[1]);
 }
 
 // grabs the pointer to an inode structure
@@ -24,24 +30,53 @@ inode_t* get_inode(int inum) {
     return &inodes[inum];
 }
 
-// creates a new inode, and provides it's fields with default values
 int alloc_inode() {
-    int nodenum;
-    for (int ii = 0; ii < 256; ++ii) {
-        if (!bitmap_get(get_inode_bitmap(), ii)) {
-            bitmap_put(get_inode_bitmap(), ii, 1);
-            nodenum = ii;
+    uint8_t* inode_bitmap = get_inode_bitmap();
+    if (inode_bitmap == NULL) {
+        // If we cannot retrieve the inode bitmap, return an error code
+        return -1;
+    }
+
+    int nodenum = -1;
+    for (int i = 0; i < 256; i++) {
+        if (!bitmap_get(inode_bitmap, i)) {
+            bitmap_put(inode_bitmap, i, 1);
+            nodenum = i;
             break;
         }
     }
+
+    // If we did not find a free inode, return an error
+    if (nodenum == -1) {
+        return -1;
+    }
+
     inode_t* new_node = get_inode(nodenum);
+    if (new_node == NULL) {
+        // If we fail to get the inode for some reason, revert bitmap changes and return an error
+        bitmap_put(inode_bitmap, nodenum, 0);
+        return -1;
+    }
+
+    // Initialize the new inode fields
     new_node->refs = 1;
     new_node->size = 0;
     new_node->mode = 0;
-    new_node->ptrs[0] = alloc_block();
+    
+    // Allocate a block for the inode
+    int block_num = alloc_block();
+    if (block_num < 0) {
+        // Failed to allocate a block, revert bitmap changes and return an error
+        bitmap_put(inode_bitmap, nodenum, 0);
+        return -1;
+    }
+    new_node->ptrs[0] = block_num;
+    new_node->ptrs[1] = 0;
+    new_node->iptr = 0; // Assuming iptr should be initialized as well
 
     return nodenum;
 }
+
 
 // destroys the inode (marks as free)
 // employs our helper methods, shrink_inode and bitmap_put
