@@ -41,7 +41,7 @@ storage_access(const char* path) {
 
     int rv = tree_lookup(path);
     if (rv >= 0) {
-        inode* node = get_inode(rv);
+        inode_t* node = get_inode(rv);
         return 0;
     }
     else
