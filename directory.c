@@ -67,65 +67,114 @@ int tree_lookup(const char* path) {
     return current_node;
 }
 
-    
-int directory_put(inode_t* dd, const char* name, int inum) {
-    int numentries = dd->size / sizeof(dirent);
-    dirent* entries = blocks_get_block(dd->ptrs[0]);
-    int alloced = 0; // we want to keep track of whether we've alloced or not
+// directory insertion
+int directory_put(inode_t* directory_inode, const char* name, int inum) {
+    // variable for how many entries currently exist in this directory
+    int entry_count = directory_inode->size / sizeof(dirent);
 
-    // building the new directory entry;
-    dirent new;
-    strncpy(new.name, name, DIR_NAME_LENGTH); 
-    new.inum = inum;
-    new.used = 1;
+    // get directory entries from inode
+    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    if (entries == NULL) {
+        // basic error handling
+        return -1;
+    }
 
-    for (int ii = 1; ii < dd->size / sizeof(dirent); ++ii) {
-        if (entries[ii].used == 0) {
-            entries[ii] = new;
-            alloced = 1;
+    dirent new_entry;
+    strncpy(new_entry.name, name, DIR_NAME_LENGTH);
+    // can't forget null termination
+    new_entry.name[DIR_NAME_LENGTH - 1] = '\0';
+    new_entry.inum = inum;
+    new_entry.used = 1;
+
+    // search for an unused slot in our entrylist
+    // starting at 1 ignores special entries ("." & "..")
+    int allocated = 0;
+    for (int x = 1; x < entry_count; x++) {
+        if (!entries[x].used) {
+            entries[x] = new_entry;
+            allocated = 1;
+            // exit when entry is placed
+            break;
         }
     }
-    
-    if (!alloced) {
-        entries[numentries] = new;
-        dd->size = dd->size + sizeof(dirent);
+
+    // otherwise, new entry at the end
+    if (!allocated) {
+        entries[entry_count] = new_entry;
+        directory_inode->size += sizeof(dirent);
     }
 
-    printf("running dir_put, putting %s, inum %d, on page %d\n", name, inum, dd->ptrs[0]);
+    printf("DEBUG for directory_put func: inserted \"%s\" (inum=%d) into block %d\n", name, inum, directory_inode->ptrs[0]);
+
     return 0;
 }
 
-// this sets the matching directory to unused and takes a ref off its inode
-int directory_delete(inode_t* dd, const char* name) {
-    printf("running dir delete on filename %s\n", name);
-    dirent* entries = blocks_get_block(dd->ptrs[0]);
-    printf("got direntries at block %d\n", dd->ptrs[0]);
-    for (int ii = 0; ii < dd->size / sizeof(dirent); ++ii) {
-        if (strcmp(entries[ii].name, name) == 0) {
-            printf("found a deletion match at entry %d\n", ii);
-            entries[ii].used = 0;
-            decrease_refs(entries[ii].inum);
+// deletion of a directory function
+int directory_delete(inode_t* directory_inode, const char* name) {
+    // grab entries block
+    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    if (entries == NULL) {
+        // can't find it? return an error
+        return -EIO; 
+    }
+
+    // how many entries are in the directory
+    int entry_count = directory_inode->size / sizeof(dirent);
+
+    // find entry that matches name
+    for (int i = 0; i < entry_count; i++) {
+        if (entries[i].used && strcmp(entries[i].name, name) == 0) {
+            // mark unused, call helper method to reduce reference count
+            entries[i].used = 0;
+            decrease_refs(entries[i].inum);
             return 0;
         }
     }
-    printf("no file found! cannot delete");
+
+    // if all else fails return no such file/directory error
     return -ENOENT;
 }
 
-// list of directories where? at the path? wait... this is for ls
 slist_t* directory_list(const char* path) {
-    int working_dir = tree_lookup(path);
-    inode_t* w_inode = get_inode(working_dir);
-    int numdirs = w_inode->size / sizeof(dirent);
-    dirent* dirs = blocks_get_block(w_inode->ptrs[0]);
-    slist_t* dirnames = NULL; 
-    for (int ii = 0; ii < numdirs; ++ii) {
-        if (dirs[ii].used) {
-            dirnames = slist_cons(dirs[ii].name, dirnames);
+    // inode # of the directory
+    int directory_inum = tree_lookup(path);
+    if (directory_inum == -1) {
+        // should the path not exist, return NULL
+        // to indicate eror
+        return NULL;
+    }
+
+    // Retrieve the inode for the given directory
+    inode_t* directory_inode = get_inode(directory_inum);
+    if (directory_inode == NULL) {
+        // If we failed to get the inode, return NULL or handle the error appropriately
+        return NULL;
+    }
+
+    // Calculate how many directory entries there are
+    int entry_count = directory_inode->size / sizeof(dirent);
+
+    // Retrieve the directory entries
+    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    if (entries == NULL) {
+        // If we can't retrieve directory entries, return NULL
+        return NULL;
+    }
+
+    // Initialize a list to store directory names
+    slist_t* dirnames = NULL;
+
+    // Iterate through all directory entries and add the names of 'used' entries to the list
+    for (int i = 0; i < entry_count; i++) {
+        if (entries[i].used) {
+            // Prepend the current entry name to the list
+            dirnames = slist_cons(entries[i].name, dirnames);
         }
     }
+
     return dirnames;
 }
+
 
 
 void print_directory(inode_t* dd) {
