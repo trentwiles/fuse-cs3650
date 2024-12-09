@@ -13,7 +13,7 @@
 
 #include "slist.h"
 
-slist_t *s_cons(const char *text, slist_t *rest) {
+slist_t *slist_cons(const char *text, slist_t *rest) {
   slist_t *xs = malloc(sizeof(slist_t));
   xs->data = strdup(text);
   xs->refs = 1;
@@ -21,7 +21,7 @@ slist_t *s_cons(const char *text, slist_t *rest) {
   return xs;
 }
 
-void s_free(slist_t *xs) {
+void slist_free(slist_t *xs) {
   if (xs == 0) {
     return;
   }
@@ -29,13 +29,13 @@ void s_free(slist_t *xs) {
   xs->refs -= 1;
 
   if (xs->refs == 0) {
-    s_free(xs->next);
+    slist_free(xs->next);
     free(xs->data);
     free(xs);
   }
 }
 
-slist_t *s_explode(const char *text, char delim) {
+slist_t *slist_explode(const char *text, char delim) {
   if (*text == 0) {
     return 0;
   }
@@ -50,10 +50,10 @@ slist_t *s_explode(const char *text, char delim) {
     skip = 1;
   }
 
-  slist_t *rest = s_explode(text + plen + skip, delim);
+  slist_t *rest = slist_explode(text + plen + skip, delim);
   char *part = alloca(plen + 2);
   memcpy(part, text, plen);
   part[plen] = 0;
 
-  return s_cons(part, rest);
+  return slist_cons(part, rest);
 }
