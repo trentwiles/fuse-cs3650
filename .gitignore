@@ -1,0 +1,5 @@
+.vscode/
+mnt/
+*.o
+*.out
+!fuse_version
