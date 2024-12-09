@@ -214,20 +214,6 @@ nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
     return rv;
 }
 
-int nufs_symlink(const char* to, const char* from) {
-    int rv = -1;
-    rv = storage_symlink(to, from);
-    printf("symlink(%s, %s) -> %d\n", to, from, rv);
-    return rv;
-}
-
-int nufs_readlink(const char* path, char* buf, size_t size) {
-    int rv = -1;
-    rv = storage_readlink(path, buf, size);
-    printf("readlink(%s, %ld) -> %d\n", path, size, rv);
-    return rv;
-}
-
 void
 nufs_init_ops(struct fuse_operations* ops)
 {
@@ -247,8 +233,6 @@ nufs_init_ops(struct fuse_operations* ops)
     ops->open	  = nufs_open;
     ops->read     = nufs_read;
     ops->write    = nufs_write;
-    // ops->utimens  = nufs_utimens;
-    // ops->ioctl    = nufs_ioctl;
     ops->readlink = nufs_readlink;
     ops->symlink  = nufs_symlink;
 };
