@@ -14,50 +14,60 @@ void directory_init() {
     rootnode->mode = 040755;
 }
 
-int 
-directory_lookup(inode_t* dd, const char* name) {
-    printf("looking for \"%s\" in dirlookup\n", name);
-    if (!strcmp(name, "")) {
-        printf("this is root, returning 0\n");
-        return 0; 
+int directory_lookup(inode_t* directory_inode, const char* name) {
+    // name empty = root directory
+    if (strcmp(name, "") == 0) {
+        return 0;
     }
-    dirent* subdirs = blocks_get_block(dd->ptrs[0]);
-    for (int ii = 0; ii < 64; ++ii) {
-        dirent csubdir = subdirs[ii];
-        if (strcmp(name, csubdir.name) == 0 && csubdir.used) {
-            printf("found a match! returning %d\n", csubdir.inum);
-            return csubdir.inum;
+
+    // get first directory block, that contains the directory entries
+    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    // included since system might NULL on error
+    if (entries == NULL) { return -1; }
+
+    // based on fixed number of entries (64)
+    const int ENTRY_COUNT = 64;
+    for (int i = 0; i < ENTRY_COUNT; ++i) {
+        dirent current_entry = entries[i];
+
+        // ensure directory name is in use (we added the .used to ferd's code)
+        if (current_entry.used && strcmp(name, current_entry.name) == 0) {
+            return current_entry.inum;  // Found the matching entry
         }
     }
-    // if we can't find something that matches the name, return -1
+
+    // if all checks fail, there was no directory found
     return -1;
 }
 
-// not sure if that's any different but imma use this to parse
-int 
-tree_lookup(const char* path) {
-    int ii = 0;
-    int jj = 0;
-    int curnode = 0;
+int tree_lookup(const char* path) {
+    // Start from the root node
+    int current_node = 0;
     
-    // creates an slist with all the dir names and the file name
-    slist_t* pathlist = slist_explode(path, '/');
-    slist_t* currdir = pathlist;
-    while (currdir != NULL) {
-        // we look for the name of the next dir in the current one
-        curnode = directory_lookup(get_inode(curnode), currdir->data);
-        if (curnode == -1) {
-            slist_free(pathlist);
+    // path spliting
+    // "test/new" -> "test", "new"
+    slist_t* path_components = slist_explode(path, '/');
+    slist_t* current_component = path_components;
+    
+    // traverse through directory
+    while (current_component != NULL) {
+        current_node = directory_lookup(get_inode(current_node), current_component->data);
+        if (current_node == -1) {
+            // not found? free the list and return -1
+            slist_free(path_components);
             return -1;
         }
-        currdir = currdir->next;
+        
+        current_component = current_component->next;
     }
-    slist_free(pathlist);
-    printf("tree lookup: %s is at node %d\n", path, curnode);
-    return curnode;
+
+    // post traversial cleanup
+    slist_free(path_components);
+    printf("tree lookup: %s is at node %d\n", path, current_node);
+    return current_node;
 }
+
     
-// puts a new directory entry into the dir at dd that points to inode inum
 int directory_put(inode_t* dd, const char* name, int inum) {
     int numentries = dd->size / sizeof(dirent);
     dirent* entries = blocks_get_block(dd->ptrs[0]);
