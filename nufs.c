@@ -128,9 +128,27 @@ int nufs_link(const char *from, const char *to) {
 
 int nufs_rmdir(const char *path) {
     int rv = -1;
-    printf("rmdir(%s) -> %d\n", path, rv);
+
+    // is directory empty?
+    slist_t *contents = storage_list(path);
+    if (contents != NULL && contents->next != NULL) {
+        printf("rmdir(%s) -> %d (directory not empty)\n", path, -ENOTEMPTY);
+        slist_free(contents);
+        return -ENOTEMPTY;
+    }
+
+    // remove via storage layer if needed
+    rv = storage_rmdir(path);
+    slist_free(contents);
+
+    if (rv == -1) {
+        printf("rmdir(%s) -> %d (directory does not exist / error occurred)\n", path, -ENOENT);
+        return -ENOENT;
+    }
+
     return rv;
 }
+
 
 // implements: man 2 rename
 // called to move a file within the same filesystem
