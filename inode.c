@@ -113,7 +113,7 @@ void free_inode(int inum) {
 
 int grow_inode(inode_t* node, int new_size) {
     if (node == NULL) {
-        return -1; // Error: invalid inode pointer
+        return -1;
     }
 
     // Calculate how many blocks we currently have and how many we need
@@ -123,43 +123,43 @@ int grow_inode(inode_t* node, int new_size) {
     // Loop from the first new block that we need to allocate up to the required number of blocks
     for (int i = current_block_count + 1; i <= needed_block_count; i++) {
         if (i < nptrs) {
-            // Use a direct pointer if available
+
             int block_num = alloc_block();
             if (block_num < 0) {
-                // Failed to allocate a block, consider partial growth a failure
+                // couldn't allocate so exit
                 return -1;
             }
             node->ptrs[i] = block_num;
         } else {
-            // We've exhausted direct pointers, use indirect pointers
+            // no direct pointers, switch to indirect pointers
             if (node->iptr == 0) {
-                // Allocate the indirect pointer block if it doesn't exist
+
+                // allocate indirect pointer
+                // (only if needed)
                 int iptr_block = alloc_block();
                 if (iptr_block < 0) {
-                    // Failed to allocate the indirect block
                     return -1;
                 }
                 node->iptr = iptr_block;
             }
 
-            // Retrieve the indirect block array
+            // grab the indirect block array
             int* indirect_ptrs = blocks_get_block(node->iptr);
             if (indirect_ptrs == NULL) {
-                // Failed to get block data for the indirect pointers
                 return -1;
             }
 
-            // Allocate a new block for this indirect pointer
+            // allocate new block, for the pointer
             int block_num = alloc_block();
             if (block_num < 0) {
-                // Failed to allocate a block
+                // failed to allocate so exit...
                 return -1;
             }
             indirect_ptrs[i - nptrs] = block_num;
         }
     }
 
-    // Update the inode size to reflect the new size
+    // update inode size following what we've done
     node->size = new_size;
     return 0;
 }
