@@ -34,10 +34,10 @@ inode_t* get_inode(int inum) {
 
 int alloc_inode() {
     uint8_t* inode_bitmap = get_inode_bitmap();
-    if (inode_bitmap == NULL) {
-        // If we cannot retrieve the inode bitmap, return an error code
-        return -1;
-    }
+
+
+    // erorr if inode bitmap wasn't found
+    if (inode_bitmap == NULL) { return -1; }
 
     int nodenum = -1;
     for (int i = 0; i < 256; i++) {
@@ -48,71 +48,122 @@ int alloc_inode() {
         }
     }
 
-    // If we did not find a free inode, return an error
+    // -1 indicts a free inode can't be found
     if (nodenum == -1) {
         return -1;
     }
 
-    inode_t* new_node = get_inode(nodenum);
-    if (new_node == NULL) {
+    inode_t* the_new_node = get_inode(nodenum);
+    if (the_new_node == NULL) {
         // If we fail to get the inode for some reason, revert bitmap changes and return an error
         bitmap_put(inode_bitmap, nodenum, 0);
         return -1;
     }
 
     // Initialize the new inode fields
-    new_node->refs = 1;
-    new_node->size = 0;
-    new_node->mode = 0;
+    the_new_node->refs = 1;
+    the_new_node->size = 0;
+    the_new_node->mode = 0;
     
     // Allocate a block for the inode
     int block_num = alloc_block();
     if (block_num < 0) {
-        // Failed to allocate a block, revert bitmap changes and return an error
+        // for whatever reason we couldn't allocate a block
         bitmap_put(inode_bitmap, nodenum, 0);
+
+        // but really, we should never reach this!!
         return -1;
     }
-    new_node->ptrs[0] = block_num;
-    new_node->ptrs[1] = 0;
-    new_node->iptr = 0; // Assuming iptr should be initialized as well
+
+    the_new_node->ptrs[0] = block_num;
+    the_new_node->ptrs[1] = 0;
+    the_new_node->iptr = 0;
 
     return nodenum;
 }
 
-
-// destroys the inode (marks as free)
-// employs our helper methods, shrink_inode and bitmap_put
-// shrink inode is defined below
 void free_inode(int inum) {
-    // grab the inode
-    inode_t* node = get_inode(inum);
-    void* bitmap = get_inode_bitmap();
 
-    // process of freeing inode resources (shrink + free)
+    // find inum as requested
+    inode_t* node = get_inode(inum);
+
+    if (node == NULL) {
+        // if null, exit
+        return;
+    }
+
+    // find the respective bitmap
+    uint8_t* inode_bitmap = get_inode_bitmap();
+    if (inode_bitmap == NULL) {
+        // if bitmap is null, exit
+        return;
+    }
+
+    // free the blocks used by the inode
     shrink_inode(node, 0);
+
     if (node->ptrs[0] != 0) {
         free_block(node->ptrs[0]);
     }
 
-    bitmap_put(bitmap, inum, 0);
+    // once done mark as free!!!
+    bitmap_put(inode_bitmap, inum, 0);
 }
 
-// grows the inode, if size gets too big, it allocates a new block if possible
-int grow_inode(inode_t* node, int size) {
-    for (int i = (node->size / 4096) + 1; i <= size / 4096; i ++) {
+
+int grow_inode(inode_t* node, int new_size) {
+    if (node == NULL) {
+        return -1; // Error: invalid inode pointer
+    }
+
+    // Calculate how many blocks we currently have and how many we need
+    int current_block_count = node->size / 4096;
+    int needed_block_count = new_size / 4096;
+
+    // Loop from the first new block that we need to allocate up to the required number of blocks
+    for (int i = current_block_count + 1; i <= needed_block_count; i++) {
         if (i < nptrs) {
-            node->ptrs[i] = alloc_block();
-        } else {
-            if (node->iptr == 0) { //get a page if we don't have one
-                node->iptr = alloc_block();
+            // Use a direct pointer if available
+            int block_num = alloc_block();
+            if (block_num < 0) {
+                // Failed to allocate a block, consider partial growth a failure
+                return -1;
             }
-            int* iptrs = blocks_get_block(node->iptr); //retrieve memory loc.
-            iptrs[i - nptrs] = alloc_block();
+            node->ptrs[i] = block_num;
+        } else {
+            // We've exhausted direct pointers, use indirect pointers
+            if (node->iptr == 0) {
+                // Allocate the indirect pointer block if it doesn't exist
+                int iptr_block = alloc_block();
+                if (iptr_block < 0) {
+                    // Failed to allocate the indirect block
+                    return -1;
+                }
+                node->iptr = iptr_block;
+            }
+
+            // Retrieve the indirect block array
+            int* indirect_ptrs = blocks_get_block(node->iptr);
+            if (indirect_ptrs == NULL) {
+                // Failed to get block data for the indirect pointers
+                return -1;
+            }
+
+            // Allocate a new block for this indirect pointer
+            int block_num = alloc_block();
+            if (block_num < 0) {
+                // Failed to allocate a block
+                return -1;
+            }
+            indirect_ptrs[i - nptrs] = block_num;
         }
     }
-    node->size = size;
+
+    // Update the inode size to reflect the new size
+    node->size = new_size;
     return 0;
 }
+
 
 // shrinks an inode size and deallocates pages if we've freed them up
 int shrink_inode(inode_t* node, int size) {
