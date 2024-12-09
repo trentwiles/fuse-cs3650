@@ -40,7 +40,7 @@ int alloc_inode() {
     new_node->refs = 1;
     new_node->size = 0;
     new_node->mode = 0;
-    new_node->ptrs[0] = alloc_block();
+    new_node->ptrs[0] = alloc_blocks();
     
     time_t curtime = time(NULL);
     new_node->ctim = curtime;
@@ -71,13 +71,13 @@ void free_inode(int inum) {
 int grow_inode(inode* node, int size) {
     for (int i = (node->size / 4096) + 1; i <= size / 4096; i ++) {
         if (i < nptrs) {
-            node->ptrs[i] = alloc_block();
+            node->ptrs[i] = alloc_blocks();
         } else {
             if (node->iptr == 0) { //get a page if we don't have one
-                node->iptr = alloc_block();
+                node->iptr = alloc_blocks();
             }
             int* iptrs = blocks_get_block(node->iptr); //retrieve memory loc.
-            iptrs[i - nptrs] = alloc_block();
+            iptrs[i - nptrs] = alloc_blocks();
         }
     }
     node->size = size;
