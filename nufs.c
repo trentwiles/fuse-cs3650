@@ -190,15 +190,6 @@ int nufs_write(const char *path, const char *buf, size_t size, off_t offset, str
     return rv;
 }
 
-// Extended operations
-int nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
-           unsigned int flags, void* data)
-{
-    int rv = 0;
-    printf("ioctl(%s, %d, ...) -> %d\n", path, cmd, rv);
-    return rv;
-}
-
 void nufs_init_ops(struct fuse_operations* ops)
 {
     memset(ops, 0, sizeof(struct fuse_operations));
@@ -217,7 +208,6 @@ void nufs_init_ops(struct fuse_operations* ops)
     ops->open	  = nufs_open;
     ops->read     = nufs_read;
     ops->write    = nufs_write;
-    ops->ioctl = nufs_ioctl;
 };
 
 struct fuse_operations nufs_ops;
