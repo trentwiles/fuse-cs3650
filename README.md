@@ -20,3 +20,13 @@ $ sudo apt-get install libtest-simple-perl
 Then using `make test` will run the provided tests.
 
 
+
+## Codespaces
+
+Helpful note for running on codespaces: update packages, and then install the required packages, as stated on the project website:
+
+```
+sudo su
+apt update
+apt-get install libfuse-dev libbsd-dev pkg-config
+```
