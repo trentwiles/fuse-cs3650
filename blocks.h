@@ -18,7 +18,7 @@
 #define BLOCK_SIZE 4096  // default = 4K
 #define NUFS_SIZE 4096 * 256   // default = 1MB
 
-#define BLOCK_BITMAP_SIZE 32; // default = 256 / 8 = 32
+#define BLOCK_BITMAP_SIZE 32 // default = 256 / 8 = 32
 
 /** 
  * Compute the number of blocks needed to store the given number of bytes.

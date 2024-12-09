@@ -21,14 +21,14 @@ int directory_lookup(inode_t* directory_inode, const char* name) {
     }
 
     // get first directory block, that contains the directory entries
-    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    dirent_t* entries = blocks_get_block(directory_inode->ptrs[0]);
     // included since system might NULL on error
     if (entries == NULL) { return -1; }
 
     // based on fixed number of entries (64)
     const int ENTRY_COUNT = 64;
     for (int i = 0; i < ENTRY_COUNT; ++i) {
-        dirent current_entry = entries[i];
+        dirent_t current_entry = entries[i];
 
         // ensure directory name is in use (we added the .used to ferd's code)
         if (current_entry.used && strcmp(name, current_entry.name) == 0) {
@@ -70,16 +70,16 @@ int tree_lookup(const char* path) {
 // directory insertion
 int directory_put(inode_t* directory_inode, const char* name, int inum) {
     // variable for how many entries currently exist in this directory
-    int entry_count = directory_inode->size / sizeof(dirent);
+    int entry_count = directory_inode->size / sizeof(dirent_t);
 
     // get directory entries from inode
-    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    dirent_t* entries = blocks_get_block(directory_inode->ptrs[0]);
     if (entries == NULL) {
         // basic error handling
         return -1;
     }
 
-    dirent new_entry;
+    dirent_t new_entry;
     strncpy(new_entry.name, name, DIR_NAME_LENGTH);
     // can't forget null termination
     new_entry.name[DIR_NAME_LENGTH - 1] = '\0';
@@ -101,7 +101,7 @@ int directory_put(inode_t* directory_inode, const char* name, int inum) {
     // otherwise, new entry at the end
     if (!allocated) {
         entries[entry_count] = new_entry;
-        directory_inode->size += sizeof(dirent);
+        directory_inode->size += sizeof(dirent_t);
     }
 
     printf("DEBUG for directory_put func: inserted \"%s\" (inum=%d) into block %d\n", name, inum, directory_inode->ptrs[0]);
@@ -112,14 +112,14 @@ int directory_put(inode_t* directory_inode, const char* name, int inum) {
 // deletion of a directory function
 int directory_delete(inode_t* directory_inode, const char* name) {
     // grab entries block
-    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    dirent_t* entries = blocks_get_block(directory_inode->ptrs[0]);
     if (entries == NULL) {
         // can't find it? return an error
         return -EIO; 
     }
 
     // how many entries are in the directory
-    int entry_count = directory_inode->size / sizeof(dirent);
+    int entry_count = directory_inode->size / sizeof(dirent_t);
 
     // find entry that matches name
     for (int i = 0; i < entry_count; i++) {
@@ -151,10 +151,10 @@ slist_t* directory_list(const char* path) {
         return NULL;
     }
 
-    int entry_count = directory_inode->size / sizeof(dirent);
+    int entry_count = directory_inode->size / sizeof(dirent_t);
 
     // find the directory entries per client request
-    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    dirent_t* entries = blocks_get_block(directory_inode->ptrs[0]);
     if (entries == NULL) {
         // error (NULL) if unable to retrieve
         return NULL;
@@ -183,9 +183,9 @@ void print_directory(inode_t* directory_inode) {
 
     // follows roughly the same iteration code as in directory_list
 
-    int entry_count = directory_inode->size / sizeof(dirent);
+    int entry_count = directory_inode->size / sizeof(dirent_t);
 
-    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    dirent_t* entries = blocks_get_block(directory_inode->ptrs[0]);
     if (entries == NULL) {
         // future: print off error message
         // printf("Empty");

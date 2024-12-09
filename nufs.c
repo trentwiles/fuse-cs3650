@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include <bsd/string.h>
-#include <dirent.h>
+// #include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,7 +37,7 @@ int nufs_getattr(const char *path, struct stat *st) {
 
   // root directory metadata
   if (strcmp(path, "/") == 0) {
-    st->st_mode = 040755;  // directory
+    st->st_mode = 040755; // directory
     st->st_size = 0;
     st->st_uid = getuid();
   } else {

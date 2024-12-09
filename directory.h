@@ -12,20 +12,17 @@
 #include "inode.h"
 #include "slist.h"
 
-typedef struct dirent {
+typedef struct dirent_t {
   char name[DIR_NAME_LENGTH];
   int inum;
   char used; // added to ferd's implementation to determine if dir is in use
   char _reserved[12];
-} dirent;
+} dirent_t;
 
 void directory_init();
 int directory_lookup(inode_t *di, const char *name);
 // useful function for discovering a path's location
 int tree_lookup(const char* path);
-
-// we also changed inode_t to inode to fit our implementation
-// yet another design choice
 int directory_put(inode_t *di, const char *name, int inum);
 int directory_delete(inode_t *di, const char *name);
 slist_t *directory_list(const char *path);
