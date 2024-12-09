@@ -111,7 +111,7 @@ slist_t* directory_list(const char* path) {
     slist_t* dirnames = NULL; 
     for (int ii = 0; ii < numdirs; ++ii) {
         if (dirs[ii].used) {
-            dirnames = s_cons(dirs[ii].name, dirnames);
+            dirnames = slist_cons(dirs[ii].name, dirnames);
         }
     }
     return dirnames;

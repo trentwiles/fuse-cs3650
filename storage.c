@@ -242,7 +242,7 @@ slist_t* storage_list(const char* path) {
 }
 
 static void get_parent_child(const char* path, char* parent, char* child) {
-    slist_t* flist = s_split(path, '/');
+    slist_t* flist = slist_split(path, '/');
     slist_t* fdir = flist;
     parent[0] = 0;
     while (fdir->next != NULL) {
@@ -252,5 +252,5 @@ static void get_parent_child(const char* path, char* parent, char* child) {
     }
     memcpy(child, fdir->data, strlen(fdir->data));
     child[strlen(fdir->data)] = 0;
-    s_free(flist);
+    slist_free(flist);
 }
