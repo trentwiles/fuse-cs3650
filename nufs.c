@@ -16,8 +16,7 @@
 
 // implementation for: man 2 access
 // Checks if a file exists.
-int
-nufs_access(const char *path, int mask)
+int nufs_access(const char *path, int mask)
 {
     int rv = 0;
     rv = storage_access(path);
@@ -237,6 +236,7 @@ nufs_init_ops(struct fuse_operations* ops)
     ops->getattr  = nufs_getattr;
     ops->readdir  = nufs_readdir;
     ops->mknod    = nufs_mknod;
+    // ops->create   = nufs_create; // alternative to mknod
     ops->mkdir    = nufs_mkdir;
     ops->link     = nufs_link;
     ops->unlink   = nufs_unlink;
