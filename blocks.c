@@ -57,7 +57,7 @@ get_inode_bitmap()
     return (void*)(blockz + 32);
 }
 
-int alloc_blocks()
+int alloc_block()
 {
     void* pbm = get_blocks_bitmap();
 
@@ -71,7 +71,7 @@ int alloc_blocks()
     return -1;
 }
 
-void free_blocks(int pnum)
+void free_block(int pnum)
 {
     void* pbm = get_blocks_bitmap();
     bitmap_put(pbm, pnum, 0);
