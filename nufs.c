@@ -18,23 +18,24 @@
 
 // implementation for: man 2 access
 // Checks if a file exists.
-int nufs_access(const char *path, int mask)
-{
+int nufs_access(const char *path, int mask) {
     // real implementation based on ferd's code
     int rv = 0;
     rv = storage_access(path);
 
     // debugging statement from ferd's
+    // probably not needed, delete at some point
     printf("access(%s, %04o) -> %d\n", path, mask, rv);
     return rv;
 }
 
-// implementation for: man 2 stat
-// gets an object's attributes (type, permissions, size, etc)
-int
-nufs_getattr(const char *path, struct stat *st)
-{
+// Gets an object's attributes (type, permissions, size, etc).
+// Implementation for: man 2 stat
+// This is a crucial function.
+int nufs_getattr(const char *path, struct stat *st) {
     int rv = 0;
+
+    // root directory metadata
     if (strcmp(path, "/") == 0) {
         st->st_mode = 040755; // directory
         st->st_size = 0;
@@ -56,8 +57,7 @@ nufs_getattr(const char *path, struct stat *st)
 // implementation for: man 2 readdir
 // lists the contents of a directory
 int nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-             off_t offset, struct fuse_file_info *fi)
-{
+             off_t offset, struct fuse_file_info *fi) {
     struct stat st;
     int rv;
 
@@ -95,8 +95,8 @@ int nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 // called for: man 2 open, man 2 link
 // Note, for this assignment, you can alternatively implement the create
 // function.
-int nufs_mknod(const char *path, mode_t mode, dev_t rdev)
-{
+// ^^^ we decided against that
+int nufs_mknod(const char *path, mode_t mode, dev_t rdev) {
     int rv = -1;
     // simply makes a call to our other method
     rv = storage_mknod(path, mode);
@@ -106,31 +106,27 @@ int nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 
 // most of the following callbacks implement
 // another system call; see section 2 of the manual
-int nufs_mkdir(const char *path, mode_t mode)
-{
+int nufs_mkdir(const char *path, mode_t mode) {
     int rv = nufs_mknod(path, mode | 040000, 0);
     printf("mkdir(%s) -> %d\n", path, rv);
     return rv;
 }
 
-int nufs_unlink(const char *path)
-{
+int nufs_unlink(const char *path) {
     int rv = -1;
     rv = storage_unlink(path);
     printf("unlink(%s) -> %d\n", path, rv);
     return rv;
 }
 
-int nufs_link(const char *from, const char *to)
-{
+int nufs_link(const char *from, const char *to) {
     int rv = -1;
     printf("link(%s => %s) -> %d\n", from, to, rv);
     rv = storage_link(to, from);
     return rv;
 }
 
-int nufs_rmdir(const char *path)
-{
+int nufs_rmdir(const char *path) {
     int rv = -1;
     printf("rmdir(%s) -> %d\n", path, rv);
     return rv;
@@ -138,23 +134,20 @@ int nufs_rmdir(const char *path)
 
 // implements: man 2 rename
 // called to move a file within the same filesystem
-int nufs_rename(const char *from, const char *to)
-{
+int nufs_rename(const char *from, const char *to) {
     int rv = -1;
     rv = storage_rename(from, to);
     printf("rename(%s => %s) -> %d\n", from, to, rv);
     return rv;
 }
 
-int nufs_chmod(const char *path, mode_t mode)
-{
+int nufs_chmod(const char *path, mode_t mode) {
     int rv = -1;
     printf("chmod(%s, %04o) -> %d\n", path, mode, rv);
     return rv;
 }
 
-int nufs_truncate(const char *path, off_t size)
-{
+int nufs_truncate(const char *path, off_t size) {
     int rv = -1;
     rv = storage_truncate(path, size);
     printf("truncate(%s, %ld bytes) -> %d\n", path, size, rv);
@@ -165,8 +158,7 @@ int nufs_truncate(const char *path, off_t size)
 // since FUSE doesn't assume you maintain state for
 // open files.
 // You can just check whether the file is accessible.
-int nufs_open(const char *path, struct fuse_file_info *fi)
-{
+int nufs_open(const char *path, struct fuse_file_info *fi) {
     int rv = 0;
     printf("open(%s) -> %d\n", path, rv);
     return rv;
@@ -190,6 +182,22 @@ int nufs_write(const char *path, const char *buf, size_t size, off_t offset, str
     return rv;
 }
 
+/**
+ * Based on office hours, we removed the extended operations, as they are not needed.
+ */
+
+// Update the timestamps on a file or directory.
+int nufs_utimens(const char *path, const struct timespec ts[2]) {
+  return 0;
+}
+
+// Extended operations
+int nufs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi,
+               unsigned int flags, void *data) {
+  return 0;
+}
+
+
 void nufs_init_ops(struct fuse_operations* ops)
 {
     memset(ops, 0, sizeof(struct fuse_operations));
@@ -208,6 +216,8 @@ void nufs_init_ops(struct fuse_operations* ops)
     ops->open	  = nufs_open;
     ops->read     = nufs_read;
     ops->write    = nufs_write;
+    ops->utimens = nufs_utimens;
+    ops->ioctl = nufs_ioctl;
 };
 
 struct fuse_operations nufs_ops;
