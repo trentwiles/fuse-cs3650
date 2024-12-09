@@ -1,6 +1,3 @@
-// based on cs3650 starter code
-
-#define _GNU_SOURCE
 #include <string.h>
 
 #include <sys/mman.h>
