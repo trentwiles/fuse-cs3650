@@ -60,14 +60,14 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     rv = nufs_getattr(path, &st);
     assert(rv == 0);
 
-    slist* dirnames = storage_list(path);
+    slist_t* dirnames = storage_list(path);
     filler(buf, ".", &st, 0);
     if (dirnames == NULL) {
         printf("readdir(%s) -> %d\n", path, rv);
         return 0;
     }
 
-    slist* currname = dirnames;
+    slist_t* currname = dirnames;
     while(currname != NULL) {
         char currpath[strlen(path) + 50];
         strncpy(currpath, path, strlen(path));
