@@ -11,9 +11,9 @@
 
 #include <stdio.h>
 
-const int BLOCK_COUNT; // we split the "disk" into blocks (default = 256)
-const int BLOCK_SIZE;  // default = 4K
-const int NUFS_SIZE;   // default = 1MB
+const int BLOCK_COUNT = 256; // we split the "disk" into blocks (default = 256)
+const int BLOCK_SIZE = 4096;  // default = 4K
+const int NUFS_SIZE = BLOCK_SIZE * 256;   // default = 1MB
 
 const int BLOCK_BITMAP_SIZE; // default = 256 / 8 = 32
 

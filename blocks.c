@@ -15,8 +15,6 @@
 #include "util.h"
 #include "bitmap.h"
 
-BLOCK_COUNT = 256;
-NUFS_SIZE  = 4096 * 256; // 1MB
 
 static int   blocks_fd   = -1;
 static void* blocks_base =  0;
