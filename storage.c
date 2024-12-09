@@ -53,7 +53,7 @@ int
 storage_stat(const char* path, struct stat* st) {
     int working_inum = tree_lookup(path);
     if (working_inum > 0) {
-        inode* node = get_inode(working_inum);
+        inode_t* node = get_inode(working_inum);
         st->st_mode = node->mode;
         st->st_size = node->size;
         st->st_nlink = node->refs;
@@ -62,10 +62,9 @@ storage_stat(const char* path, struct stat* st) {
     return -1;
 }
 
-int 
-storage_truncate(const char *path, off_t size) {
+int storage_truncate(const char *path, off_t size) {
     int inum = tree_lookup(path);
-    inode* node = get_inode(inum);
+    inode_t* node = get_inode(inum);
     if (node->size < size) {
 	grow_inode(node, size);
     } else {
@@ -74,11 +73,9 @@ storage_truncate(const char *path, off_t size) {
     return 0;
 }
 
-int 
-storage_write(const char* path, const char* buf, size_t size, off_t offset)
-{
+int  storage_write(const char* path, const char* buf, size_t size, off_t offset) {
     // get the start point with the path
-    inode* write_node = get_inode(tree_lookup(path));
+    inode_t* write_node = get_inode(tree_lookup(path));
     if (write_node->size < size + offset) {
         storage_truncate(path, size + offset);
     }
@@ -237,7 +234,7 @@ int storage_rmdir(const char *path) {
         return -ENOENT; // Directory does not exist
     }
 
-    inode *inode = get_inode(dir_inum);
+    inode_t *inode = get_inode(dir_inum);
     if (!inode) {
         return -ENOENT; // Inode not found
     }
@@ -262,7 +259,7 @@ int storage_rmdir(const char *path) {
     int parent_inum = tree_lookup(parent_path);
 
     if (parent_inum >= 0) {
-        inode *parent_inode = get_inode(parent_inum);
+        inode_t *parent_inode = get_inode(parent_inum);
         if (parent_inode) {
             remove_dir_entry(parent_inode, name); // Helper to remove the entry
         }
