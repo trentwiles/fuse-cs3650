@@ -8,38 +8,26 @@
 #include "pages.h"
 #include "bitmap.h"
 
-/* Definition of the inode structure:
-
-typedef struct inode {
-    int refs; // reference count
-    int mode; // permission & type
-    int size; // bytes
-    int ptrs[2]; // direct pointers
-    int iptr; // single indirect pointer
-    time_t atim;
-    time_t ctim;
-    time_t mtim;
-} inode; */
-
-void 
-print_inode(inode* node) {
+// debugging function to print off the entire 
+void print_inode(inode* node) {
+    printf("==== INODE DEBUGGING ====");
     printf("inode located at %p:\n", node);
+    printf("Node Type & Permission: %d\n", node->mode);
     printf("Reference count: %d\n", node->refs);
-    printf("Node Permission + Type: %d\n", node->mode);
-    printf("Node size in bytes: %d\n", node->size);
-    printf("Node direct pointers: %d, %d\n", node->ptrs[0], node->ptrs[1]);
-    printf("Node indirect pointer: %d\n", node->iptr);
+    printf("Node size (B): %d\n", node->size);
+    printf("Node indirect pointer count: %d\n", node->iptr);
+    printf("Node direct pointer count: %d, %d\n", node->ptrs[0], node->ptrs[1]);
 }
 
-inode* 
-get_inode(int inum) {
+// grabs the pointer to an inode structure
+// in the form of inode*
+inode* get_inode(int inum) {
     inode* inodes = get_inode_bitmap() + 32;
     return &inodes[inum];
 }
 
-// take a look at the malloc implementation
-int 
-alloc_inode() {
+// creates a new inode, and provides it's fields with default values
+int alloc_inode() {
     int nodenum;
     for (int ii = 0; ii < 256; ++ii) {
         if (!bitmap_get(get_inode_bitmap(), ii)) {
@@ -62,10 +50,10 @@ alloc_inode() {
     return nodenum;
 }
 
-// marks the inode as free in the bitmap and then clears the pointer locations
-void 
-free_inode(int inum) {
-    printf("+ free_inode(%d)\n", inum);
+// destroys the inode (marks as free)
+// employs our helper methods, shrink_inode and bitmap_put
+// shrink inode is defined below
+void free_inode(int inum) {
     inode* node = get_inode(inum);
     void* bmp = get_inode_bitmap(); 
     shrink_inode(node, 0);
@@ -76,9 +64,9 @@ free_inode(int inum) {
 // grows the inode, if size gets too big, it allocates a new page if possible
 int grow_inode(inode* node, int size) {
     for (int i = (node->size / 4096) + 1; i <= size / 4096; i ++) {
-        if (i < nptrs) { //we can use direct ptrs
-            node->ptrs[i] = alloc_page(); //alloc a page
-        } else { //need to use indirect
+        if (i < nptrs) {
+            node->ptrs[i] = alloc_page();
+        } else {
             if (node->iptr == 0) { //get a page if we don't have one
                 node->iptr = alloc_page();
             }
