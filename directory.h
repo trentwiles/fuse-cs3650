@@ -15,6 +15,7 @@
 typedef struct dirent {
   char name[DIR_NAME_LENGTH];
   int inum;
+  char used; // added to ferd's implementation to determine if dir is in use
   char _reserved[12];
 } dirent;
 
