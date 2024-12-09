@@ -237,8 +237,8 @@ int storage_rmdir(const char *path) {
         return -ENOENT; // Directory does not exist
     }
 
-    inode_t *dir_inode = get_inode(dir_inum);
-    if (!dir_inode) {
+    inode *inode = get_inode(dir_inum);
+    if (!inode) {
         return -ENOENT; // Inode not found
     }
 
@@ -262,7 +262,7 @@ int storage_rmdir(const char *path) {
     int parent_inum = tree_lookup(parent_path);
 
     if (parent_inum >= 0) {
-        inode_t *parent_inode = get_inode(parent_inum);
+        inode *parent_inode = get_inode(parent_inum);
         if (parent_inode) {
             remove_dir_entry(parent_inode, name); // Helper to remove the entry
         }
