@@ -20,7 +20,6 @@
 
 // our c header files
 #include "blocks.h"
-#include "util.h"
 #include "bitmap.h"
 
 // we removed ferds's block count in leiu of define
