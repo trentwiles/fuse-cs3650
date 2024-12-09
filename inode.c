@@ -92,7 +92,7 @@ int shrink_inode(inode* node, int size) {
             node->ptrs[i] = 0;
         } else { //need to use indirect
             int* iptrs = blocks_get_block(node->iptr); //retrieve memory loc.
-            free_block(iptrs[i - nptrs]); //free the single page
+            free_blocks(iptrs[i - nptrs]); //free the single page
             iptrs[i-nptrs] = 0;
 
             if (i == nptrs) { //if that was the last thing on the page
