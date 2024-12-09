@@ -65,7 +65,7 @@ int directory_put(inode* dd, const char* name, int inum) {
 
     // building the new directory entry;
     dirent new;
-    strncpy(new.name, name, DIR_NAME); 
+    strncpy(new.name, name, DIR_NAME_LENGTH); 
     new.inum = inum;
     new.used = 1;
 
