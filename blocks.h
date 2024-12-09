@@ -10,7 +10,7 @@ void blocks_free();
 void* blocks_get_block(int pnum);
 void* get_blocks_bitmap();
 void* get_inode_bitmap();
-int alloc_block();
+int alloc_blocks();
 void free_block(int pnum);
 
 #endif
