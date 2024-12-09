@@ -211,8 +211,7 @@ int nufs_utimens(const char *path, const struct timespec ts[2]) {
 }
 
 // Extended operations
-int nufs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi,
-               unsigned int flags, void *data) {
+int nufs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi, unsigned int flags, void *data) {
   return 0;
 }
 
