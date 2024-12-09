@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+// for unit8_t
+#include <stdint.h>
 
 #include "inode.h"
 #include "blocks.h"
