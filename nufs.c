@@ -1,18 +1,18 @@
 // based on cs3650 starter code
 
+#include <assert.h>
+#include <bsd/string.h>
+#include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <errno.h>
 #include <sys/stat.h>
-#include <dirent.h>
-#include <bsd/string.h>
-#include <assert.h>
-#include "storage.h"
-#include "inode.h"
+#include <sys/types.h>
+#include <unistd.h>
+
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
+
 
 // implementation for: man 2 access
 // Checks if a file exists.
