@@ -3,10 +3,11 @@
 #ifndef DIRECTORY_H
 #define DIRECTORY_H
 
+// max dir name size, CHANGE LATER
 #define DIR_NAME 48
 
 #include "slist.h"
-#include "pages.h"
+#include "blocks.h"
 #include "inode.h"
 
 typedef struct dirent {

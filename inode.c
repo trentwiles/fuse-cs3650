@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "inode.h"
-#include "pages.h"
+#include "blocks.h"
 #include "bitmap.h"
 
 // debugging function to print off the entire 
@@ -40,7 +40,7 @@ int alloc_inode() {
     new_node->refs = 1;
     new_node->size = 0;
     new_node->mode = 0;
-    new_node->ptrs[0] = alloc_page();
+    new_node->ptrs[0] = alloc_block();
     
     time_t curtime = time(NULL);
     new_node->ctim = curtime;
@@ -61,23 +61,23 @@ void free_inode(int inum) {
     // process of freeing inode resources (shrink + free)
     shrink_inode(node, 0);
     if (node->ptrs[0] != 0) {
-        free_page(node->ptrs[0]);
+        free_block(node->ptrs[0]);
     }
 
     bitmap_put(bitmap, inum, 0);
 }
 
-// grows the inode, if size gets too big, it allocates a new page if possible
+// grows the inode, if size gets too big, it allocates a new block if possible
 int grow_inode(inode* node, int size) {
     for (int i = (node->size / 4096) + 1; i <= size / 4096; i ++) {
         if (i < nptrs) {
-            node->ptrs[i] = alloc_page();
+            node->ptrs[i] = alloc_block();
         } else {
             if (node->iptr == 0) { //get a page if we don't have one
-                node->iptr = alloc_page();
+                node->iptr = alloc_block();
             }
-            int* iptrs = pages_get_page(node->iptr); //retrieve memory loc.
-            iptrs[i - nptrs] = alloc_page(); //add another page
+            int* iptrs = blocks_get_block(node->iptr); //retrieve memory loc.
+            iptrs[i - nptrs] = alloc_block();
         }
     }
     node->size = size;
@@ -88,15 +88,15 @@ int grow_inode(inode* node, int size) {
 int shrink_inode(inode* node, int size) {
     for (int i = (node->size / 4096); i > size / 4096; i --) {
         if (i < nptrs) { //we're in direct ptrs
-            free_page(node->ptrs[i]); //free the page
+            free_block(node->ptrs[i]); //free the page
             node->ptrs[i] = 0;
         } else { //need to use indirect
-            int* iptrs = pages_get_page(node->iptr); //retrieve memory loc.
-            free_page(iptrs[i - nptrs]); //free the single page
+            int* iptrs = blocks_get_block(node->iptr); //retrieve memory loc.
+            free_block(iptrs[i - nptrs]); //free the single page
             iptrs[i-nptrs] = 0;
 
             if (i == nptrs) { //if that was the last thing on the page
-                free_page(node->iptr); //we don't need it anymore
+                free_block(node->iptr); //we don't need it anymore
                 node->iptr = 0;
             }
         }
@@ -111,7 +111,7 @@ int inode_get_pnum(inode* node, int fpn) {
     if (blocknum < nptrs) {
         return node->ptrs[blocknum];
     } else {
-        int* iptrs = pages_get_page(node->iptr);
+        int* iptrs = blocks_get_block(node->iptr);
         return iptrs[blocknum-nptrs];
     }
 }

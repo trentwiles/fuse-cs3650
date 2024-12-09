@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "slist.h"
-#include "pages.h"
+#include "blocks.h"
 #include "directory.h"
 #include "inode.h"
 #include "bitmap.h"
@@ -21,22 +21,21 @@ static void storage_update_time(inode* dd, time_t newa, time_t newm);
 static void get_parent_child(const char* path, char* parent, char* child);
 
 // initializes our file structure
-void
-storage_init(const char* path) {
-    // initialize the pages
-    pages_init(path);
-    // allocate a page for the inode list
-    if (!bitmap_get(get_pages_bitmap(), 1)) {
+void storage_init(const char* path) {
+    blocks_init(path);
+    // allocate for the inode list
+    if (!bitmap_get(get_blocks_bitmap(), 1)) {
         for (int i = 0; i < 3; i++) {
-            int newpage = alloc_page();
-            printf("second inode page allocated at page %d\n", newpage);
+            int newblock = alloc_block();
+            // to later me: THROW A PRINT STATEMENT SOMEWHERE HERE
+            // newblock var isn't used, consider deletion
         }
     }
-    // the remaining pages will be alloced when we put data in them
+    // the remaining blocks will be alloced when we put data in them
 
     // then we initialize the root directory if it isn't allocated
-    if (!bitmap_get(get_pages_bitmap(), 4)) {
-        printf("initializing root directory");
+    if (!bitmap_get(get_blocks_bitmap(), 4)) {
+        printf("yay! we made the root directory!!!!");
         directory_init();
     }
 }
@@ -97,7 +96,7 @@ storage_write(const char* path, const char* buf, size_t size, off_t offset)
     int nindex = offset;
     int rem = size;
     while (rem > 0) {
-        char* dest = pages_get_page(inode_get_pnum(write_node, nindex));
+        char* dest = blocks_get_block(inode_get_pnum(write_node, nindex));
         dest += nindex % 4096;
         int cpyamnt = min(rem, 4096 - (nindex % 4096));
         memcpy(dest, buf + bindex, cpyamnt);
@@ -117,7 +116,7 @@ storage_read(const char* path, char* buf, size_t size, off_t offset)
     int nindex = offset;
     int rem = size;
     while (rem > 0) {
-        char* src = pages_get_page(inode_get_pnum(node, nindex));
+        char* src = blocks_get_block(inode_get_pnum(node, nindex));
         src += nindex % 4096;
         int cpyamnt = min(rem, 4096 - (nindex % 4096));
         memcpy(buf + bindex, src, cpyamnt);

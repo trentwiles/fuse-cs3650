@@ -3,7 +3,8 @@
 #ifndef INODE_H
 #define INODE_H
 
-#include "pages.h"
+// including blocks.h isn't technically needed, but we can remove later
+#include "blocks.h"
 #include <time.h>
 
 #define nptrs 2
