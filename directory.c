@@ -135,6 +135,7 @@ int directory_delete(inode_t* directory_inode, const char* name) {
     return -ENOENT;
 }
 
+// provides the directory entries in the form of an slist
 slist_t* directory_list(const char* path) {
     // inode # of the directory
     int directory_inum = tree_lookup(path);
@@ -144,44 +145,62 @@ slist_t* directory_list(const char* path) {
         return NULL;
     }
 
-    // Retrieve the inode for the given directory
+    // get the directory's inode
     inode_t* directory_inode = get_inode(directory_inum);
     if (directory_inode == NULL) {
-        // If we failed to get the inode, return NULL or handle the error appropriately
         return NULL;
     }
 
-    // Calculate how many directory entries there are
     int entry_count = directory_inode->size / sizeof(dirent);
 
-    // Retrieve the directory entries
+    // find the directory entries per client request
     dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
     if (entries == NULL) {
-        // If we can't retrieve directory entries, return NULL
+        // error (NULL) if unable to retrieve
         return NULL;
     }
 
     // Initialize a list to store directory names
     slist_t* dirnames = NULL;
 
-    // Iterate through all directory entries and add the names of 'used' entries to the list
     for (int i = 0; i < entry_count; i++) {
         if (entries[i].used) {
-            // Prepend the current entry name to the list
+            // add directory names to our slist
             dirnames = slist_cons(entries[i].name, dirnames);
         }
     }
 
+    // return in form of slist
     return dirnames;
 }
 
-
-
-void print_directory(inode_t* dd) {
-    int numdirs = dd->size / sizeof(dirent);
-    dirent* dirs = blocks_get_block(dd->ptrs[0]);
-    for (int ii = 0; ii < numdirs; ++ii) {
-        printf("%s\n", dirs[ii].name);
+// toString-like function to print out a directory for debugging
+void print_directory(inode_t* directory_inode) {
+    if (directory_inode == NULL) {
+        // nothing to print, end function
+        return;
     }
-}
 
+    // follows roughly the same iteration code as in directory_list
+
+    int entry_count = directory_inode->size / sizeof(dirent);
+
+    dirent* entries = blocks_get_block(directory_inode->ptrs[0]);
+    if (entries == NULL) {
+        // future: print off error message
+        // printf("Empty");
+        return;
+    }
+
+    // finally, we print off each directory name
+    for (int i = 0; i < entry_count; i++) {
+        // FUTURE: consider printing only directories in use
+        // by looking at entries[i].used
+        printf("%s\n", entries[i].name);
+    }
+
+    // output looks something like:
+    // dir1
+    // dir2
+    // dir3
+}
