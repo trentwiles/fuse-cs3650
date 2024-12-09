@@ -59,6 +59,7 @@ int storage_stat(const char *path, struct stat *st) {
   return -1;
 }
 
+// truncates the file to the specified size
 int storage_truncate(const char *path, off_t size) {
   int inum = tree_lookup(path);
   inode_t *node = get_inode(inum);
@@ -70,6 +71,7 @@ int storage_truncate(const char *path, off_t size) {
   return 0;
 }
 
+// writes data to the file at the specified path
 int storage_write(const char *path, const char *buf, size_t size,
                   off_t offset) {
   // get the start point with the path
@@ -92,6 +94,7 @@ int storage_write(const char *path, const char *buf, size_t size,
   return size;
 }
 
+// reads data from the file at the specified path
 int storage_read(const char *path, char *buf, size_t size, off_t offset) {
   printf("storage_read called, buffer is\n%s\n", buf);
   inode_t *node = get_inode(tree_lookup(path));
@@ -110,11 +113,12 @@ int storage_read(const char *path, char *buf, size_t size, off_t offset) {
   return size;
 }
 
+// creates a new file node at the specified path
 int storage_mknod(const char *path, int mode) {
   // should add a dirent of the correct mode to the
   // directory at the path
 
-  // check to make sure the node doesn't alreay exist
+  // check to make sure the node doesn't already exist
   if (tree_lookup(path) != -1) {
     return -EEXIST;
   }
@@ -143,8 +147,7 @@ int storage_mknod(const char *path, int mode) {
   return 0;
 }
 
-// this is used for the removal of a link. If refs are 0, then we also
-// delete the inode associated with the dirent_t
+// removes a link to a file, and deletes the inode if no more references exist
 int storage_unlink(const char *path) {
   char *nodename = malloc(50);
   char *parentpath = malloc(strlen(path));
@@ -159,6 +162,7 @@ int storage_unlink(const char *path) {
   return rv;
 }
 
+// creates a hard link from one file to another
 int storage_link(const char *from, const char *to) {
   int tnum = tree_lookup(to);
   if (tnum < 0) {
@@ -178,27 +182,17 @@ int storage_link(const char *from, const char *to) {
   return 0;
 }
 
-int storage_symlink(const char *to, const char *from) {
-  int rv = storage_mknod(from, 0120000);
-  if (rv < 0) {
-    return rv;
-  }
-  storage_write(from, to, strlen(to), 0);
-  return 0;
-}
-
-int storage_readlink(const char *path, char *buf, size_t size) {
-  return storage_read(path, buf, size, 0);
-}
-
+// renames a file from one path to another
 int storage_rename(const char *from, const char *to) {
   storage_link(to, from);
   storage_unlink(from);
   return 0;
 }
 
+// lists the contents of a directory
 slist_t *storage_list(const char *path) { return directory_list(path); }
 
+// helper function to get the parent directory and child name from a path
 static void get_parent_child(const char *path, char *parent, char *child) {
   slist_t *flist = slist_explode(path, '/');
   slist_t *fdir = flist;
@@ -214,6 +208,7 @@ static void get_parent_child(const char *path, char *parent, char *child) {
   slist_free(flist);
 }
 
+// removes a directory if it is empty
 int storage_rmdir(const char *path) {
   slist_t *contents = storage_list(path);
   if (contents != NULL && contents->next != NULL) {
