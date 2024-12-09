@@ -219,7 +219,8 @@ static void get_parent_child(const char* path, char* parent, char* child) {
     slist_t* fdir = flist;
     parent[0] = 0;
     while (fdir->next != NULL) {
-        strncat(parent, "/", 1);
+        // 2 for null terminator
+        strncat(parent, "/", 2);
         strncat(parent, fdir->data, 48);
         fdir = fdir->next;
     }
