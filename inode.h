@@ -14,7 +14,7 @@ typedef struct inode {
     int size; // bytes
     int ptrs[nptrs]; // direct pointers
     int iptr; // single indirect pointer
-} inode_t;
+} inode;
 
 void print_inode(inode* node);
 inode* get_inode(int inum);
