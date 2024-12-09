@@ -98,7 +98,7 @@ int
 storage_read(const char* path, char* buf, size_t size, off_t offset)
 {
     printf("storage_read called, buffer is\n%s\n", buf);
-    inode* node = get_inode(tree_lookup(path));
+    inode_t* node = get_inode(tree_lookup(path));
     int bindex = 0;
     int nindex = offset;
     int rem = size;
@@ -136,11 +136,11 @@ storage_mknod(const char* path, int mode) {
     }
     
     int new_inode = alloc_inode();
-    inode* node = get_inode(new_inode);
+    inode_t* node = get_inode(new_inode);
     node->mode = mode;
     node->size = 0;
     node->refs = 1;
-    inode* parent_dir = get_inode(pnodenum);
+    inode_t* parent_dir = get_inode(pnodenum);
 
     directory_put(parent_dir, item, new_inode);
     free(item);
@@ -156,7 +156,7 @@ storage_unlink(const char* path) {
     char* parentpath = malloc(strlen(path));
     get_parent_child(path, parentpath, nodename);
 
-    inode* parent = get_inode(tree_lookup(parentpath));
+    inode_t* parent = get_inode(tree_lookup(parentpath));
     int rv = directory_delete(parent, nodename);
 
     free(parentpath);
@@ -176,7 +176,7 @@ storage_link(const char *from, const char *to) {
     char* fparent = malloc(strlen(from));
     get_parent_child(from, fparent, fname);
 
-    inode* pnode = get_inode(tree_lookup(fparent));
+    inode_t* pnode = get_inode(tree_lookup(fparent));
     directory_put(pnode, fname, tnum);
     get_inode(tnum)->refs ++;
     
