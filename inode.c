@@ -61,7 +61,7 @@ void free_inode(int inum) {
     // process of freeing inode resources (shrink + free)
     shrink_inode(node, 0);
     if (node->ptrs[0] != 0) {
-        free_block(node->ptrs[0]);
+        free_blocks(node->ptrs[0]);
     }
 
     bitmap_put(bitmap, inum, 0);
@@ -88,7 +88,7 @@ int grow_inode(inode* node, int size) {
 int shrink_inode(inode* node, int size) {
     for (int i = (node->size / 4096); i > size / 4096; i --) {
         if (i < nptrs) { //we're in direct ptrs
-            free_block(node->ptrs[i]); //free the page
+            free_blocks(node->ptrs[i]); //free the page
             node->ptrs[i] = 0;
         } else { //need to use indirect
             int* iptrs = blocks_get_block(node->iptr); //retrieve memory loc.
@@ -96,7 +96,7 @@ int shrink_inode(inode* node, int size) {
             iptrs[i-nptrs] = 0;
 
             if (i == nptrs) { //if that was the last thing on the page
-                free_block(node->iptr); //we don't need it anymore
+                free_blocks(node->iptr); //we don't need it anymore
                 node->iptr = 0;
             }
         }

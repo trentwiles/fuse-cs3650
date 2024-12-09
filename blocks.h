@@ -11,6 +11,6 @@ void* blocks_get_block(int pnum);
 void* get_blocks_bitmap();
 void* get_inode_bitmap();
 int alloc_blocks();
-void free_block(int pnum);
+void free_blocks(int pnum);
 
 #endif
