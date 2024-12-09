@@ -237,13 +237,13 @@ void storage_update_time(inode* dd, time_t newa, time_t newm)
     dd->mtim = newm;
 }
 
-slist* storage_list(const char* path) {
+slist_t* storage_list(const char* path) {
     return directory_list(path);
 }
 
 static void get_parent_child(const char* path, char* parent, char* child) {
-    slist* flist = s_split(path, '/');
-    slist* fdir = flist;
+    slist_t* flist = s_split(path, '/');
+    slist_t* fdir = flist;
     parent[0] = 0;
     while (fdir->next != NULL) {
         strncat(parent, "/", 1);
