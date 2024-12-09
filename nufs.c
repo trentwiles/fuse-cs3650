@@ -184,6 +184,7 @@ int nufs_write(const char *path, const char *buf, size_t size, off_t offset, str
 
 /**
  * Based on office hours, we removed the extended operations, as they are not needed.
+ * Now they just return dummy data.
  */
 
 // Update the timestamps on a file or directory.

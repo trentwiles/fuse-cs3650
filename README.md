@@ -30,3 +30,6 @@ sudo su
 apt update
 apt-get install libfuse-dev libbsd-dev pkg-config
 ```
+## Other Notes
+
+Due to some gitignore issues on my homeserver, you may see the log and nufs files here. They should be deleted and ignored.

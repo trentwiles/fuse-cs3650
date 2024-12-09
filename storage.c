@@ -9,7 +9,6 @@
 #include "directory.h"
 #include "inode.h"
 #include "bitmap.h"
-#include "util.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
