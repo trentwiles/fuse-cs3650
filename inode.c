@@ -7,7 +7,7 @@
 #include "bitmap.h"
 
 // debugging function to print off the entire 
-void print_inode(inode* node) {
+void print_inode(inode_t* node) {
     printf("==== INODE DEBUGGING ====");
     printf("inode located at %p:\n", node);
     printf("Node Type & Permission: %d\n", node->mode);
