@@ -17,7 +17,6 @@ typedef struct dirent {
     char _reserved[11]; // round it out to 64B
 } dirent;
 
-// not sure what this does
 void directory_init(); 
 int directory_lookup(inode* dd, const char* name);
 int tree_lookup(const char* path);
