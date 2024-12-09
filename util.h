@@ -1,4 +1,5 @@
-// based on cs3650 starter code
+// set of helper function
+// MAYBE DELETE THIS LATER
 
 #ifndef INODE_H
 #define INODE_H

@@ -11,6 +11,9 @@
 
 #include <stdio.h>
 
+// design choice I made here, I decided to use define over ferd's original
+// const int, as I found it to be more suited to my implementation
+
 #define BLOCK_COUNT 256 // we split the "disk" into blocks (default = 256)
 #define BLOCK_SIZE 4096  // default = 4K
 #define NUFS_SIZE 4096 * 256   // default = 1MB
