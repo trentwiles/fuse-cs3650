@@ -24,7 +24,7 @@ void storage_init(const char* path) {
     // allocate for the inode list
     if (!bitmap_get(get_blocks_bitmap(), 1)) {
         for (int i = 0; i < 3; i++) {
-            int newblock = alloc_blocks();
+            int newblock = alloc_block();
             // to later me: THROW A PRINT STATEMENT SOMEWHERE HERE
             // newblock var isn't used, consider deletion
         }
