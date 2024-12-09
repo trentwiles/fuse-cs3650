@@ -20,8 +20,7 @@
 // Checks if a file exists.
 int nufs_access(const char *path, int mask) {
   // real implementation based on ferd's code
-  int rv = 0;
-  rv = storage_access(path);
+  int rv = storage_access(path);
 
   // debugging statement from ferd's
   // probably not needed, delete at some point
@@ -97,9 +96,8 @@ int nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 // function.
 // ^^^ we decided against that
 int nufs_mknod(const char *path, mode_t mode, dev_t rdev) {
-  int rv = -1;
   // simply makes a call to our other method
-  rv = storage_mknod(path, mode);
+  int rv = storage_mknod(path, mode);
   printf("mknod(%s, %04o) -> %d\n", path, mode, rv);
   return rv;
 }
@@ -113,8 +111,7 @@ int nufs_mkdir(const char *path, mode_t mode) {
 }
 
 int nufs_unlink(const char *path) {
-  int rv = -1;
-  rv = storage_unlink(path);
+  int rv = storage_unlink(path);
   printf("unlink(%s) -> %d\n", path, rv);
   return rv;
 }
@@ -153,21 +150,21 @@ int nufs_rmdir(const char *path) {
 // implements: man 2 rename
 // called to move a file within the same filesystem
 int nufs_rename(const char *from, const char *to) {
-  int rv = -1;
-  rv = storage_rename(from, to);
+  int rv = storage_rename(from, to);
   printf("rename(%s => %s) -> %d\n", from, to, rv);
   return rv;
 }
 
+// dummy implementation
 int nufs_chmod(const char *path, mode_t mode) {
   int rv = -1;
   printf("chmod(%s, %04o) -> %d\n", path, mode, rv);
   return rv;
 }
 
+// called to change the size of a file
 int nufs_truncate(const char *path, off_t size) {
-  int rv = -1;
-  rv = storage_truncate(path, size);
+  int rv = storage_truncate(path, size);
   printf("truncate(%s, %ld bytes) -> %d\n", path, size, rv);
   return rv;
 }
