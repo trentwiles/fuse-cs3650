@@ -41,18 +41,18 @@ tree_lookup(const char* path) {
     int curnode = 0;
     
     // creates an slist with all the dir names and the file name
-    slist_t* pathlist = s_split(path, '/');
+    slist_t* pathlist = slist_explode(path, '/');
     slist_t* currdir = pathlist;
     while (currdir != NULL) {
         // we look for the name of the next dir in the current one
         curnode = directory_lookup(get_inode(curnode), currdir->data);
         if (curnode == -1) {
-            s_free(pathlist);
+            slist_free(pathlist);
             return -1;
         }
         currdir = currdir->next;
     }
-    s_free(pathlist);
+    slist_free(pathlist);
     printf("tree lookup: %s is at node %d\n", path, curnode);
     return curnode;
 }
