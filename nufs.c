@@ -190,16 +190,6 @@ int nufs_write(const char *path, const char *buf, size_t size, off_t offset, str
     return rv;
 }
 
-// Update the timestamps on a file or directory.
-int nufs_utimens(const char* path, const struct timespec ts[2])
-{
-    int rv = -1;
-    rv = storage_set_time(path, ts);
-    printf("utimens(%s, [%ld, %ld; %ld %ld]) -> %d\n",
-           path, ts[0].tv_sec, ts[0].tv_nsec, ts[1].tv_sec, ts[1].tv_nsec, rv);
-    return rv;
-}
-
 // Extended operations
 int nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
            unsigned int flags, void* data)
@@ -227,7 +217,6 @@ void nufs_init_ops(struct fuse_operations* ops)
     ops->open	  = nufs_open;
     ops->read     = nufs_read;
     ops->write    = nufs_write;
-    ops->utimens = nufs_utimens;
     ops->ioctl = nufs_ioctl;
 };
 
