@@ -16,7 +16,7 @@ typedef struct dirent {
   char name[DIR_NAME_LENGTH];
   int inum;
   char _reserved[12];
-} dirent_t;
+} dirent;
 
 void directory_init();
 int directory_lookup(inode *di, const char *name);
